@@ -14,6 +14,11 @@ const elements = {
     filterBtns: document.querySelectorAll('.filter-btn'),
     releasesContainer: document.getElementById('releases-container'),
     
+    // Theme Toggle & Export
+    themeToggle: document.getElementById('theme-toggle'),
+    themeIcon: document.getElementById('theme-icon'),
+    exportCsvButton: document.getElementById('export-csv-button'),
+    
     // States
     loadingState: document.getElementById('loading-state'),
     errorState: document.getElementById('error-state'),
@@ -38,6 +43,7 @@ const elements = {
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     initProgressRing();
     fetchReleases();
     setupEventListeners();
@@ -180,14 +186,31 @@ function renderReleases() {
                         <span class="type-badge" data-type="${update.type}">
                             ${getBadgeIcon(update.type)} ${update.type}
                         </span>
-                        <span class="select-indicator">
-                            <i class="fa-solid fa-feather-pointed"></i> Select to Tweet
-                        </span>
+                        <div class="card-actions">
+                            <button class="card-action-btn copy-btn" title="Copy text to clipboard">
+                                <i class="fa-solid fa-copy"></i>
+                            </button>
+                            <span class="select-indicator">
+                                <i class="fa-solid fa-feather-pointed"></i> Select to Tweet
+                            </span>
+                        </div>
                     </div>
                     <div class="update-body">
                         ${update.html}
                     </div>
                 `;
+                
+                // Copy to Clipboard click handler
+                const copyBtn = card.querySelector('.copy-btn');
+                copyBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Stop card select event
+                    navigator.clipboard.writeText(update.plain_text)
+                        .then(() => showToast('Copied to clipboard!', 'success'))
+                        .catch(err => {
+                            console.error('Failed to copy: ', err);
+                            showToast('Failed to copy text', 'error');
+                        });
+                });
                 
                 // Click to select update card
                 card.addEventListener('click', () => {
@@ -334,6 +357,12 @@ function setupEventListeners() {
     
     // Post click
     elements.btnSendTweet.addEventListener('click', sendTweet);
+
+    // Theme Toggle click
+    elements.themeToggle.addEventListener('click', toggleTheme);
+    
+    // Export CSV click
+    elements.exportCsvButton.addEventListener('click', exportToCSV);
 }
 
 // Toast System
@@ -353,3 +382,89 @@ function showToast(message, type = 'success') {
         elements.toast.classList.remove('show');
     }, 3000);
 }
+
+// Theme Initialization
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        elements.themeIcon.className = 'fa-solid fa-sun text-yellow';
+    } else {
+        document.body.classList.remove('light-theme');
+        elements.themeIcon.className = 'fa-solid fa-moon';
+    }
+}
+
+// Toggle Theme (Dark/Light)
+function toggleTheme() {
+    const isLight = document.body.classList.toggle('light-theme');
+    if (isLight) {
+        localStorage.setItem('theme', 'light');
+        elements.themeIcon.className = 'fa-solid fa-sun text-yellow';
+        showToast('Light theme enabled', 'info');
+    } else {
+        localStorage.setItem('theme', 'dark');
+        elements.themeIcon.className = 'fa-solid fa-moon';
+        showToast('Dark theme enabled', 'info');
+    }
+}
+
+// Export visible updates to CSV
+function exportToCSV() {
+    let csvData = [];
+    // Header Row
+    csvData.push(['Date', 'Link', 'Type', 'Content']);
+    
+    let exportedCount = 0;
+    
+    state.releases.forEach(day => {
+        const filteredUpdates = day.updates.filter(update => {
+            const matchesType = state.currentFilter === 'all' || 
+                                update.type.toLowerCase() === state.currentFilter.toLowerCase();
+            
+            const searchLower = state.searchQuery.toLowerCase();
+            const matchesSearch = !state.searchQuery || 
+                                  update.plain_text.toLowerCase().includes(searchLower) ||
+                                  update.type.toLowerCase().includes(searchLower) ||
+                                  day.date.toLowerCase().includes(searchLower);
+            
+            return matchesType && matchesSearch;
+        });
+        
+        filteredUpdates.forEach(update => {
+            // Escape double quotes in CSV fields
+            const cleanDate = day.date.replace(/"/g, '""');
+            const cleanLink = (day.link || '').replace(/"/g, '""');
+            const cleanType = update.type.replace(/"/g, '""');
+            const cleanText = update.plain_text.replace(/"/g, '""').replace(/\r?\n|\r/g, ' '); // replace breaks with spaces
+            
+            csvData.push([`"${cleanDate}"`, `"${cleanLink}"`, `"${cleanType}"`, `"${cleanText}"`]);
+            exportedCount++;
+        });
+    });
+    
+    if (exportedCount === 0) {
+        showToast('No notes visible to export!', 'error');
+        return;
+    }
+    
+    // Join rows with CRLF
+    const csvContent = csvData.map(row => row.join(',')).join('\r\n');
+    
+    // Trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const timestamp = new Date().toISOString().split('T')[0];
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `bigquery_releases_${timestamp}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showToast(`Successfully exported ${exportedCount} rows!`, 'success');
+}
+

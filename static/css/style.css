@@ -303,6 +303,53 @@ body {
     transform: translateY(0);
 }
 
+.theme-toggle-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: var(--text-secondary);
+    transform: rotate(15deg);
+}
+
+.export-btn {
+    background: linear-gradient(135deg, var(--color-green) 0%, #047857 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.25rem;
+    border-radius: 10px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.export-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+}
+
+.export-btn:active {
+    transform: translateY(0);
+}
+
 .spinner-icon {
     transition: transform 0.8s ease;
 }
@@ -967,3 +1014,125 @@ body {
         padding: 1.5rem;
     }
 }
+
+/* Card action buttons and select container */
+.card-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.card-action-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+    z-index: 10;
+}
+
+.card-action-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+}
+
+/* Light Theme Variables & Overrides */
+body.light-theme {
+    --bg-main: #f8fafc;
+    --bg-sidebar: #f1f5f9;
+    --bg-card: rgba(255, 255, 255, 0.75);
+    --border-color: rgba(15, 23, 42, 0.08);
+    --border-active: rgba(59, 130, 246, 0.6);
+    
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #627185;
+    
+    --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+    --color-blue-bg: rgba(59, 130, 246, 0.12);
+    --color-green-bg: rgba(16, 185, 129, 0.12);
+    --color-red-bg: rgba(239, 68, 68, 0.12);
+    --color-orange-bg: rgba(249, 115, 22, 0.12);
+}
+
+body.light-theme .sidebar {
+    background-color: #f1f5f9;
+}
+
+body.light-theme .glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+}
+
+body.light-theme #search-input {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(15, 23, 42, 0.1);
+    color: #0f172a;
+}
+
+body.light-theme #search-input:focus {
+    background: #ffffff;
+    border-color: var(--color-blue);
+}
+
+body.light-theme .tweet-preview-container {
+    background: #ffffff;
+    border-color: #e2e8f0;
+}
+
+body.light-theme .tweet-profile .name {
+    color: #0f172a;
+}
+
+body.light-theme .tweet-profile .handle {
+    color: #64748b;
+}
+
+body.light-theme #tweet-textarea {
+    color: #0f172a;
+}
+
+body.light-theme .tweet-footer {
+    border-top-color: #cbd5e1;
+}
+
+body.light-theme .card-action-btn {
+    background: rgba(15, 23, 42, 0.04);
+    border-color: rgba(15, 23, 42, 0.08);
+}
+
+body.light-theme .card-action-btn:hover {
+    background: rgba(15, 23, 42, 0.08);
+    color: var(--text-primary);
+}
+
+body.light-theme .theme-toggle-btn {
+    background: rgba(15, 23, 42, 0.04);
+    border-color: rgba(15, 23, 42, 0.08);
+}
+
+body.light-theme .theme-toggle-btn:hover {
+    background: rgba(15, 23, 42, 0.08);
+}
+
+body.light-theme .update-card:hover {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+body.light-theme .update-card.selected {
+    background: #ffffff;
+}
+
+body.light-theme .date-badge {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.15);
+}
+
