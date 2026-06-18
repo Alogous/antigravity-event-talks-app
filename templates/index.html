@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigQuery Release Pulse</title>
+    <meta name="description" content="A premium, real-time dashboard for Google Cloud BigQuery release notes, enabling developers to search, filter, and share updates on Twitter.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <div class="bq-logo">
+                    <span class="dot yellow"></span>
+                    <span class="dot blue"></span>
+                    <span class="dot green"></span>
+                    <span class="dot red"></span>
+                </div>
+                <h1>BQ Release Pulse</h1>
+            </div>
+            
+            <div class="sidebar-section">
+                <h2 class="section-title">Filters</h2>
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all" id="btn-filter-all">
+                        <i class="fa-solid fa-list"></i> All Updates
+                    </button>
+                    <button class="filter-btn" data-filter="Feature" id="btn-filter-feature">
+                        <i class="fa-solid fa-wand-magic-sparkles text-blue"></i> Features
+                    </button>
+                    <button class="filter-btn" data-filter="Announcement" id="btn-filter-announcement">
+                        <i class="fa-solid fa-bullhorn text-green"></i> Announcements
+                    </button>
+                    <button class="filter-btn" data-filter="Issue" id="btn-filter-issue">
+                        <i class="fa-solid fa-triangle-exclamation text-red"></i> Issues
+                    </button>
+                    <button class="filter-btn" data-filter="Deprecation" id="btn-filter-deprecation">
+                        <i class="fa-solid fa-ban text-orange"></i> Deprecations
+                    </button>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h2 class="section-title">Quick Search</h2>
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="search-input" placeholder="Search keywords..." autocomplete="off">
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="theme-info">
+                    <p>Designed for BigQuery Devs</p>
+                    <span>v1.0.0</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="welcome-msg">
+                    <h2>Latest BigQuery Releases</h2>
+                    <p>Track Google Cloud BigQuery releases and share them with your team.</p>
+                </div>
+                <div class="action-bar">
+                    <button class="refresh-btn" id="refresh-button">
+                        <i class="fa-solid fa-arrows-rotate spinner-icon" id="refresh-icon"></i>
+                        <span>Refresh Notes</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-grid">
+                <!-- Timeline Section -->
+                <section class="timeline-section">
+                    <div id="loading-state" class="state-container hidden">
+                        <div class="modern-spinner">
+                            <div class="spinner-ring"></div>
+                            <div class="spinner-core"></div>
+                        </div>
+                        <p>Fetching BigQuery release notes...</p>
+                    </div>
+
+                    <div id="error-state" class="state-container error hidden">
+                        <i class="fa-solid fa-circle-exclamation error-icon"></i>
+                        <h3>Failed to retrieve updates</h3>
+                        <p id="error-message">Connection timed out. Please try again.</p>
+                        <button class="retry-btn" id="retry-button">Retry Connection</button>
+                    </div>
+
+                    <div id="empty-state" class="state-container hidden">
+                        <i class="fa-solid fa-hourglass-empty empty-icon"></i>
+                        <h3>No release notes match your filters</h3>
+                        <p>Try clearing your search query or selecting "All Updates".</p>
+                    </div>
+
+                    <div class="releases-timeline" id="releases-container">
+                        <!-- Dynamically filled -->
+                    </div>
+                </section>
+
+                <!-- Tweet Composer Section -->
+                <section class="composer-section">
+                    <div class="glass-card composer-card">
+                        <div class="composer-header">
+                            <div class="composer-badge">
+                                <i class="fa-brands fa-x-twitter"></i>
+                                <span>Tweet Station</span>
+                            </div>
+                            <span class="instructions">Select any release note on the left to load into composer.</span>
+                        </div>
+
+                        <!-- Empty Composer State -->
+                        <div id="composer-empty" class="composer-placeholder">
+                            <div class="placeholder-icon">
+                                <i class="fa-solid fa-feather-pointed"></i>
+                            </div>
+                            <h4>No Release Selected</h4>
+                            <p>Click on any feature, issue, or announcement card to auto-generate a tweet draft.</p>
+                        </div>
+
+                        <!-- Composer Active State -->
+                        <div id="composer-active" class="composer-form hidden">
+                            <div class="tweet-preview-container">
+                                <div class="tweet-profile">
+                                    <div class="avatar-bq">
+                                        <i class="fa-solid fa-database"></i>
+                                    </div>
+                                    <div class="profile-meta">
+                                        <span class="name">BigQuery Releases</span>
+                                        <span class="handle">@GoogleCloudDev</span>
+                                    </div>
+                                </div>
+                                <div class="tweet-editor-wrapper">
+                                    <textarea id="tweet-textarea" rows="6" maxlength="280" placeholder="What's happening?"></textarea>
+                                </div>
+                                
+                                <div class="tweet-link-badge">
+                                    <i class="fa-solid fa-link text-blue"></i>
+                                    <span id="tweet-attached-link" class="link-text"></span>
+                                </div>
+
+                                <div class="tweet-footer">
+                                    <div class="char-counter">
+                                        <svg class="progress-ring" width="28" height="28">
+                                            <circle class="progress-ring__bg" stroke="#334155" stroke-width="2" fill="transparent" r="11" cx="14" cy="14"/>
+                                            <circle class="progress-ring__circle" stroke="#3b82f6" stroke-width="2" fill="transparent" r="11" cx="14" cy="14"/>
+                                        </svg>
+                                        <span id="char-count" class="char-count-text">280</span>
+                                    </div>
+                                    <button class="tweet-btn" id="btn-send-tweet">
+                                        <i class="fa-brands fa-x-twitter"></i>
+                                        <span>Post Draft</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="composer-tips">
+                                <h5><i class="fa-solid fa-lightbulb text-yellow"></i> Pro Tip</h5>
+                                <p>You can edit the text directly in the box above before publishing. The official documentation link is appended to your tweet automatically.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast" id="toast-notification">
+        <i class="fa-solid fa-circle-check text-green" id="toast-icon"></i>
+        <span id="toast-message">Notes refreshed successfully!</span>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
